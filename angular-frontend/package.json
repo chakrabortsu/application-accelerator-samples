@@ -27,7 +27,7 @@
     "base64-js": "^1.5.1",
     "base64url": "^3.0.1",
     "crypto-browserify": "^3.12.0",
-    "crypto-js": "^4.1.1",
+    "crypto-js": "^4.2.0",
     "jwt-decode": "^3.1.2",
     "os-browserify": "^0.3.0",
     "rxjs": "~7.5.0",
@@ -36,7 +36,7 @@
     "zone.js": "~0.11.4"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^14.2.10",
+    "@angular-devkit/build-angular": "^14.2.13",
     "@angular/cli": "~14.2.10",
     "@angular/compiler-cli": "^14.2.10",
     "@types/crypto-js": "^4.1.1",
@@ -48,5 +48,8 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.0.0",
     "typescript": "~4.7.2"
-  }
+  },
+  "overrides": {
+    "follow-redirects": "1.15.4"
+  }  
 }

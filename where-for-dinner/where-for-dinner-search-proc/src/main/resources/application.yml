@@ -121,10 +121,9 @@ spring:
 
   data:
     redis:
-      # Workaround for https://github.com/spring-cloud/spring-cloud-bindings/issues/87:
-      host: ${spring.redis.host}
-      password: ${spring.redis.password}
-      port: ${spring.redis.port}
+      ssl:
+        enabled: false
+      port: 6379
   
 management:
   health:
@@ -140,6 +139,14 @@ spring:
     stream:
       defaultBinder: kafka
 
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+
+management:
+  health:
+    rabbit:
+      enabled: false
+
 ---
 
 spring:
@@ -148,3 +155,11 @@ spring:
   cloud: 
     stream:
       defaultBinder: kinesis
+      
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+
+management:
+  health:
+    rabbit:
+      enabled: false

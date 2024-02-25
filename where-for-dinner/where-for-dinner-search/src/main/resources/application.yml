@@ -17,17 +17,23 @@ spring:
 
   sql.init.mode: ALWAYS 
   sql.init.platform: h2
+  sql.init.continue-on-error: true
 
   cloud: 
+    function:
+      definition: submittedSearches    
     stream:
       defaultBinder: rabbit
       poller:
         fixed-delay: ${where-for-dinner.searchEvent.period} 
-      function:
-        definition: submittedSearches
       bindings: 
         submittedSearches-out-0: 
           destination: where-for-dinner-search-criteria
+        deletedSearches-out-0: 
+          destination: where-for-dinner-search-deletion
+
+  r2dbc: 
+    url: r2dbc:h2:mem:///testdb
 
 springdoc:
   packages-to-scan: com.java.example.tanzu.wherefordinner.resources
@@ -61,6 +67,14 @@ spring:
     stream:
       defaultBinder: kafka
 
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+
+management:
+  health:
+    rabbit:
+      enabled: false
+
 ---
 
 spring:
@@ -68,5 +82,24 @@ spring:
   
   cloud: 
     stream:
-      defaultBinder: kinesis      
+      defaultBinder: kinesis     
+      
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+
+management:
+  health:
+    rabbit:
+      enabled: false 
+      
+---
+
+spring:
+  config.activate.on-profile: secure
+  
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://testservice.placeholder.com/test
           

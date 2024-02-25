@@ -63,15 +63,15 @@ After that it is a good habit to compile the test classes and execute those test
 Spring Boot has its own integrated Web Server (Apache Tomcat (https://tomcat.apache.org/)). In order 
 to start the application a database instance should be running.
 
-Launch application using profile `local`:
+Launch application using a `docker-compose` database instance:
 --- StartMaven
 ```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+./mvnw spring-boot:run
 ```
 --- EndMaven
 --- StartGradle
 ```bash
-./gradlew bootRun --args='--spring.profiles.active=local'
+./gradlew bootRun
 ```
 --- EndGradle
 
@@ -164,14 +164,12 @@ Using the Tanzu CLI one could apply the workload using the local sources:
 tanzu apps workload apply \
   --file config/workload.yaml \
   --namespace <workload-namespace> \
-  --source-image <image-registry> \
   --local-path . \
   --yes \
   --tail
 ```
 
-Note: change the namespace to where you would like to deploy this workload. Also define the (private) image registry you
-are allowed to push the source-image, like: `docker.io/username/repository`.
+Note: change the namespace to where you would like to deploy this workload.
 
 ### Visual Studio Code Tanzu Plugin
 

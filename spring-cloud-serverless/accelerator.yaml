@@ -11,6 +11,15 @@ accelerator:
 
   # options for the UI
   options:
+  - name: javaVersion
+    inputType: select
+    label: Java version to use
+    choices:
+    - value: "17"
+      text: Java 17
+    - value: "21"
+      text: Java 21
+    defaultValue: "17"
   - name: deploymentType
     inputType: select
     label: Deployment type
@@ -23,15 +32,8 @@ accelerator:
       text: Skip Kubernetes deployment
     defaultValue: workload
     required: true
-  - name: sourceRepositoryPrefix
-    inputType: text
-    label: The source image repository prefix to use when pushing the source
-    description: The prefix for the source image repository where source can be stored during development
-    defaultValue: dev.local
-    dependsOn:
-      name: deploymentType
-      value: workload
   imports:
+  - name: java-version
   - name: tap-workload
   - name: build-wrapper-maven
 
@@ -45,6 +47,8 @@ engine:
       substitutions:
       - text: hello-fun
         with: "#artifactId"
+    - type: InvokeFragment
+      reference: java-version
   - include: [ "kubernetes/k8s/deployment.yaml", "kubernetes/k8s/service.yaml" ]
     condition: "#deploymentType == 'k8s-simple'"
     chain:
@@ -72,6 +76,8 @@ engine:
         with: "': ' + #artifactId"
     - type: RewritePath
       rewriteTo: "'config/' + #filename"
+    - type: InvokeFragment
+      reference: java-version
     - merge:
         - type: InvokeFragment
           reference: tap-workload
@@ -84,10 +90,6 @@ engine:
       substitutions:
       - text: hello-fun
         with: "#artifactId"
-    - type: ReplaceText
-      substitutions:
-        - text: dev.local
-          with: "#sourceRepositoryPrefix"
     - type: RewritePath
       rewriteTo: "#filename"
   - include: [ "kubernetes/tap/.tanzuignore" ]
@@ -126,6 +128,7 @@ engine:
           with: "#artifactId"
       - type: RewritePath
         rewriteTo: "'README.md'"
+
   - type: InvokeFragment
     reference: build-wrapper-maven
 

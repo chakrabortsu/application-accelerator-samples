@@ -43,11 +43,7 @@ accelerator:
   imports:
     - name: app-sso-client
       expose:
-        - name: workloadURL
-          dependsOn:
-            name: includeAppSsoIntegration
-            value: true
-        - name: appSsoServerLabel
+        - name: appssoOfferingName
           dependsOn:
             name: includeAppSsoIntegration
             value: true
@@ -59,7 +55,6 @@ accelerator:
           dependsOn:
             name: buildTool
             value: 'maven'
-        - name: sourceRepositoryPrefix
     - name: tap-workload
     - name: build-wrapper-maven
     - name: build-wrapper-gradle

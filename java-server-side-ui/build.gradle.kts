@@ -1,6 +1,6 @@
 
 plugins {
-    id("org.springframework.boot") version "2.7.10"
+    id("org.springframework.boot") version "2.7.18"
     id("io.spring.dependency-management") version "1.0.15.RELEASE"
     id("java")
 }
@@ -10,7 +10,7 @@ version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_11
 
 extra["snakeyaml.version"] = "1.33"
-extra["spring-security.version"] = "5.8.2"
+extra["spring-security.version"] = "5.8.10"
 
 repositories {
     mavenCentral()

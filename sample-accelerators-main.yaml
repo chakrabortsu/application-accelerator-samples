@@ -165,6 +165,17 @@ spec:
     subPath: fragments/build-wrapper-maven
 ---
 apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
+kind: Fragment
+metadata:
+  name: devcontainer
+spec:
+  git:
+    ref:
+      branch: main
+    url: https://github.com/vmware-tanzu/application-accelerator-samples.git
+    subPath: fragments/devcontainer
+---
+apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
 kind: Accelerator
 metadata:
   name: appsso-starter-java
@@ -185,17 +196,6 @@ spec:
       branch: main
     url: https://github.com/vmware-tanzu/application-accelerator-samples.git
     subPath: where-for-dinner
----
-apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
-kind: Accelerator
-metadata:
-  name: java-function
-spec:
-  git:
-    ref:
-      branch: main
-    url: https://github.com/vmware-tanzu/application-accelerator-samples.git
-    subPath: java-function
 ---
 apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
 kind: Accelerator
@@ -244,28 +244,6 @@ spec:
 apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
 kind: Accelerator
 metadata:
-  name: node-function
-spec:
-  git:
-    ref:
-      branch: main
-    url: https://github.com/vmware-tanzu/application-accelerator-samples.git
-    subPath: node-function
----
-apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
-kind: Accelerator
-metadata:
-  name: python-function
-spec:
-  git:
-    ref:
-      branch: main
-    url: https://github.com/vmware-tanzu/application-accelerator-samples.git
-    subPath: python-function
----
-apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
-kind: Accelerator
-metadata:
   name: spring-cloud-serverless
 spec:
   git:
@@ -284,6 +262,17 @@ spec:
       branch: main
     url: https://github.com/vmware-tanzu/application-accelerator-samples.git
     subPath: spring-smtp-gateway
+---
+apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
+kind: Accelerator
+metadata:
+  name: spring-streaming-app
+spec:
+  git:
+    ref:
+      branch: main
+    url: https://github.com/vmware-tanzu/application-accelerator-samples.git
+    subPath: spring-streaming-app
 ---
 apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
 kind: Accelerator
@@ -310,24 +299,13 @@ spec:
 apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
 kind: Accelerator
 metadata:
-  name: weatherforecast-csharp
+  name: csharp-weatherforecast
 spec:
   git:
     ref:
       branch: main
     url: https://github.com/vmware-tanzu/application-accelerator-samples.git
-    subPath: weatherforecast-csharp
----
-apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
-kind: Accelerator
-metadata:
-  name: weatherforecast-steeltoe
-spec:
-  git:
-    ref:
-      branch: main
-    url: https://github.com/vmware-tanzu/application-accelerator-samples.git
-    subPath: weatherforecast-steeltoe
+    subPath: csharp-weatherforecast
 ---
 apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
 kind: Accelerator
@@ -339,14 +317,3 @@ spec:
       branch: main
     url: https://github.com/vmware-tanzu/application-accelerator-samples.git
     subPath: angular-frontend
----
-apiVersion: accelerator.apps.tanzu.vmware.com/v1alpha1
-kind: Accelerator
-metadata:
-  name: react-frontend
-spec:
-  git:
-    ref:
-      branch: main
-    url: https://github.com/vmware-tanzu/application-accelerator-samples.git
-    subPath: react-frontend

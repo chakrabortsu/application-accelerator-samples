@@ -1,5 +1,5 @@
 {
-    "repositoryPrefix": "dev.local",
-    "updateBoot3": true,
+    "nativeBuild": false,
+    "springBootVersion" : "3.2",
     "javaVersion": "17"
 }

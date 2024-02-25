@@ -9,6 +9,9 @@ accelerator:
     - spring
     - java
   imports:
+    - name: app-sso-client
+      expose:
+        - name: appssoOfferingName
     - name: tap-workload
     - name: build-wrapper-gradle
 
@@ -31,6 +34,12 @@ engine:
                 with: "'\n  name: ' + #artifactId.toLowerCase()"
               - text: "app.kubernetes.io/part-of: appsso-starter-java"
                 with: "'app.kubernetes.io/part-of: ' + #artifactId.toLowerCase()"
+      - include: [ "README.md" ]
+        chain:
+          - type: ReplaceText
+            substitutions:
+              - text: "<your-selected-appsso-offering>"
+                with: "#appssoOfferingName"
     - merge:
       - type: InvokeFragment
         reference: build-wrapper-gradle

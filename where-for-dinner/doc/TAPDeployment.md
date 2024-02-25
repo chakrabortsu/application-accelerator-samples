@@ -24,6 +24,7 @@ These instructions assume that you have a TAP 1.3.x or greater iterate cluster (
 * Tanzu Source Controller
 * Tanzu AppSSO (required if using the `Enable Security` option)
 * Tanzu Spring Cloud Gateway (required if using the `TAP Spring Cloud Gateway` option)
+* Helm Client (required if installing the RabbitMQ operator Helm Chart)
 
 ## Quick Start
 
@@ -33,6 +34,15 @@ This section provides a fast track installation of the "simplest" configuration 
 
 ```
 kubectl apply -f "https://github.com/rabbitmq/cluster-operator/releases/download/v1.14.0/cluster-operator.yml"
+```
+
+If your cluster has [Pod Security Admission](https://kubernetes.io/docs/concepts/security/pod-security-admission/) enabled, the RabbitMQ operator above will not work.
+As an alternative, you can install the RabbitMQ operator using Helm with the following commands:
+
+```
+kubectl create ns rabbitmq
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm install rabbitmq bitnami/rabbitmq-cluster-operator -n rabbitmq
 ```
 
 * Navigate to your TAP GUI web page and Application Accelerator tab on the left of the screen.  Select the `Choose` button on the `Where for Dinner` Application
@@ -55,7 +65,19 @@ kubectl apply -f ./config/developer/
 ```
 
 **NOTE:**  If you have chosen AppSSO as well as TAP Spring Cloud gateway as configuration options, it is likely that the Gateway component will fail to 
-deploy due to the AppSSO client registration secret not being created yet.  If this occurs, delete the Spring Cloud Gateway instance and rerun the `kubectl apply -f ./config/service-operator/` command after applying configuration in the `./config/app-operator` directory.
+deploy due to the AppSSO secret needing to be updated.  If this occurs, you will need to retrieve the secret from the `WorkloadRegistration` object, update the secret in the `./config/servie-operator/scgInstance.yaml` file, and rerun the `kubectl apply -f ./config/service-operator/` command (you will need to execute these steps after applying configuration in the `./config/app-operator` directory).  To retrieve the secret name from the `WorkloadRegistration` object, run the following commands (these assume the application is deployed into a namespace named `workloads` and the AppSSO instance is named `appsso-where-for-dinner`)
+
+To retrieve the `WorkloadRegistration` object, run the following command.
+```
+kubectl get workloadreg -n workloads | grep appsso-where-for-dinner
+```
+
+You should get something similar to the following: `appsso-where-for-dinner-fjqz4   Ready` where `appsso-where-for-dinner-fjqz4` is the `WorkloadRegistration` name.  Next run the following command to retrieve the secret name using the `WorkloadRegistration` name from above:
+
+```
+kb get workloadreg appsso-where-for-dinner-fjqz4 -n workloads -o jsonpath='{.status.binding.name}'  
+```
+
 
 Depending on previously installed/cached components, network speed/latency, and available cluster compute, the amount of time for the RabbitMQ cluster to spin up and the workloads to build and deploy may vary greatly.  It is possible for the process to take more than 10 minutes in some instances.
 
@@ -70,7 +92,7 @@ If the application was successfully deployed, you should see a section at the bo
 ```
 Knative Services
 NAME                READY   URL
-where-for-dinner    Ready   http://where-for-dinner.perfect300rock.com
+where-for-dinner    Ready   https://where-for-dinner.perfect300rock.com
 ```
 
 ### Monitor and Verify Installation
@@ -136,10 +158,9 @@ See the instructions [here](#software-catalog).
 
 ## Configuration Option Overview  
 
-Tanzu Application Platform supports various eventing options for deployments.  The two targeted for this application of the following:
+Tanzu Application Platform supports the following event streaming options for deployments of Where For Dinner:
 
 * Spring Cloud Streams
-* Knative eventing
 
 In addition, the Where for Dinner application has additional deployment options which consume additional services and/or provide additional functionality.  These include
 * H2 (In Memory) vs MySQL vs Postgres database options
@@ -147,7 +168,7 @@ In addition, the Where for Dinner application has additional deployment options 
 * Security enablement with AppSSO
 * Routing with TAP Spring Cloud Gateway
 
-The simplest configuration is to use Spring Cloud Streams; however, using Knative eventing provides for extended capabilities such as scale to zero and auto scaling.  In both options, a Spring Cloud Streams binding implementation is required for moving messages from the `where-for-dinner-search` application; RabbitMQ is the default binding provided.  Neither option requires a change in source code, however different runtime dependencies are configured at build time depending on which eventing implementation is desired.  
+The simplest configuration is to use Spring Cloud Streams.  A Spring Cloud Streams binding implementation is required for moving messages from the `where-for-dinner-search` application; RabbitMQ is the default binding provided.  
 
 For database configuration, the default H2 in memory database is the simplest option and requires no additional database services to be installed, however you will lose all database information with an application restart and can not scale past one instance.  The MySQL and Postgres options give you persistence and scalability, but require you to install a database operator and provision database instances.  
 
@@ -160,8 +181,8 @@ the deployment of the TAP Spring Cloud Gateway package into your cluster.  Choos
 applications and require the deployment of `SpringCloudGateway`, `SpringCloudGatewayMapping`, and `SpringCloudGatewayRouteConfig` resources (all of which are generated by the
 accelerator).  Because the gateway is not a TAP managed workload in this option, it will also require the configuration and deployment of an Ingress in the form of an
 `HttpProxy` resource (again, generated by the accelerator).  In addition, the Ingress will not use TLS by default.  You can manually add TLS to either the 
-[Ingress](https://docs.vmware.com/en/VMware-Spring-Cloud-Gateway-for-Kubernetes/2.0/scg-k8s/GUID-guides-external-access.html) or allow
-TLS pass through and [configure TLS](https://docs.vmware.com/en/VMware-Spring-Cloud-Gateway-for-Kubernetes/2.0/scg-k8s/GUID-guides-tls.html) on per host basis on the Gateway instance.  
+[Ingress](https://docs.vmware.com/en/VMware-Spring-Cloud-Gateway-for-Kubernetes/2.1/scg-k8s/GUID-guides-external-access.html) or allow
+TLS pass through and [configure TLS](https://docs.vmware.com/en/VMware-Spring-Cloud-Gateway-for-Kubernetes/2.1/scg-k8s/GUID-guides-tls.html) on per host basis on the Gateway instance.  
 
 **NOTE:** For the fastest and easiest path to deploying this application, use the default options of the H2 database, in memory cache, OSS Spring Cloud Gateweay, 
 and no security.  You will still be required to deploy the RabbitMQ operator out of band, however this step is trivial as explained in the `RabbitMQ Operator` 
@@ -190,15 +211,7 @@ kubectl apply -f "https://github.com/rabbitmq/cluster-operator/releases/download
 
 If successfully installed, there will be an RabbitMQ cluster operator pod running in the `rabbitmq-system` namespace.
 
-##### RabbitMQ Topology Operator
 
-If you choose to use the Knative eventing deployment option, you will also need to deploy the RabbitMQ Topology Operator.  This operator allows for the declarative creation of resources like RabbitMQ exchanges, queues, and bindings.  The topology operator is a dependency of the Knative RabbitMQ source resource.  The RabbitMQ source acts as a bridge between messages emitted by the `where-for-dinner-search` application and the rest of the downstream services. 
-
-To install the RabbitMQ Topology operator, run the following command against your cluster. 
-
-```
-kubectl apply -f "https://github.com/rabbitmq/messaging-topology-operator/releases/latest/download/messaging-topology-operator-with-certmanager.yaml"
-```
 #### VMware Tanzu� RabbitMQ� for Kubernetes
 
 To install VMware Tanzu� RabbitMQ� for Kubernetes, refer to the installation instructions [here](https://docs.vmware.com/en/VMware-Tanzu-RabbitMQ-for-Kubernetes/1.3/tanzu-rmq/GUID-installation.html).
@@ -245,6 +258,8 @@ The accelerator contains the following configuration options:
 * **Service Namespace:** The namespace where data service instances like RabbitMQ and databases reside (or will reside once created).  It is assumed that this namespace has already been created.
 * **Gateway Type:** The type of gateway that will be deployed to route HTTP traffic.  Options are OSS and TAP Spring Cloud Gateway.
 * **Gateway Service Name:** If the TAP Spring Cloud Gateway option is selected, this is the name of the gateway service that will be created.
+* **Use Curated APIs:** If selected along with the TAP Spring Cloud Gateway option, this will create a `CuratedAPIDescriptor` to generate an single aggregated API.  It will
+also be used to create the RouteConfig and RouteMapping resources for the gateway instead of using resources in the `scgServiceRoutes.yaml` file.
 * **Message Broker Type:** The message broker implementation that the services will connect to.  RabbitMQ is currently the only option.
 * **Message Broker Name:**  The name of the message borker resource that the micro-services will connect to. 
 * **Dynamically Provision Message Broker:** If this box is checked, the accelerator will generate configuration that enables dynamically provisioning of the message broker.  Dynamic provisioning will use the `ClusterInstanceClass` defined in the next option.
@@ -258,17 +273,15 @@ The accelerator contains the following configuration options:
 * **Dynamically Provision Cache:** If this box is checked, the accelerator will generate configuration that enables dynamically provisioning of the external caching option.  Dynamic provisioning will use the `ClusterInstanceClass` defined in the next option.
 * **Cache Cluster Instance Class:** If dynamic provisioning of the cache is selected, this is the name of the `ClusterInstanceClass` used to provision the cache.  The default `ClusterInstanceClass` name provisions a Redis instance that uses a Bitnami configuration.  You can change the default name to use any other defined `ClusterInstanceClass` that uses dynamic provisioning.
 * **Cache Instance Name:** The name of the caching resource that the micro-services will connect to (in not using the In Memory option).  This name will be propagated to the `workload.yaml` files in the resource claim section to indicate the names of the caching system that micro-services should connect to.
-* **Enable Cloud Events:** If this box is checked, the accelerator will generate a configuration yaml file in the `config/app-operator` directory that contains the resource definitions for the Knative eventing resources.  These include the RabbitMQ source as well as the broker and trigger configurations for routing events to downstream services.  This will also configure applicable services to remove the Spring Cloud Stream binding libraries from the build process.  **Note:** This option does not currenlty work with the dynamic message broker provisioning option. 
-* **Use RabbitMQ Knative Eventing Broker:** If this box is checked, the Knative broker will use a RabbitMQ broker implementation.
 * **Enable Security:** If this box is checked, the accelerator will configure the applications to use a `secure` profile that will require the UI application to authenticate users and for micro-services to require valid oAuth tokens with each request.  The accelerator will also generate a file named `appSSOInstance.yaml` in the `config/service-operator` directory that contains the configuration to create an AppSSO authorization server.  It will also generate a file named `clientRegistrationResourceClaim.yaml` in the `config/app-operator` directory that contains configuration for creating a ClientRegistration resource as well as the resource claims that the micro-services can use to create service bindings to AppSSO instance (via the ClientRegistration).
 * **AppSSO Instance Name:**  If security is enabled, the name of the AppSSO resource that the micro-services will connect to.  This name will also be propagated to the `workload.yaml` files in the resource claim section to indicate the names of the AppSOO resource that micro-services should connect to.  Lastly, this name will be used as the hostname part of the AppSSO URL.
 * **Create Default Dev Account:**  If this box is checked, a default development account will be created that can be used to authenticate with the AppSSO service.
 * **Dev Account Username:** The username of the default dev account in the AppSSO instance.
 * **Dev Account Password:** The plain text password of the default dev account in the AppSSO instance.
-* **Workload URL :**  If security is enabled or TAP Spring Cloud Gateway is selected, this is the expected URL of the Hungman application's UI web page.  
-It will be used to generate the redirect URI back the API gateway service after a successful user authentication.  **Note:**  If the TAP Spring Cloud Gateway option is selected,
-the default scheme for the redirect URI will be `http` vs `https`.
+* **Workload URL :**  If TAP Spring Cloud Gateway is selected, this is the expected URL of the Where For Dinner application's UI web page.  
+**Note:**  If the TAP Spring Cloud Gateway option is selected, the default scheme for the Workload URI will be `http`.
 * **Alternate Workload Implementations :** If this box is checked, certain services will be built using alternative implementations written in different programming languages.
+* **Support native GraalVM builds :** If this box is checked, native images will be built for workloads that support this feature.
 
 **NOTE:** The default workload namespace is `workloads` and NOT `default`.  Make sure the workload namespace you choose is setup to build and run workloads.
 
