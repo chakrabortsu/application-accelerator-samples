@@ -8,14 +8,15 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: developer-defined-tekton-pipeline
-  namespace: DEVELOPER-NAMESPACE
+  name: tekton-pipeline-java
   labels:
-    apps.tanzu.vmware.com/pipeline: test     # (!) required
+    apps.tanzu.vmware.com/pipeline: test
+  annotations:
+    kapp.k14s.io/create-strategy: fallback-on-update
 spec:
   params:
-    - name: source-url                       # (!) required
-    - name: source-revision                  # (!) required
+    - name: source-url
+    - name: source-revision
   tasks:
     - name: test
       params:
@@ -27,10 +28,31 @@ spec:
         params:
           - name: source-url
           - name: source-revision
+        #! Please remove the stepTemplate that adds the securityContext if you are using TAP 1.7.0 or above on Openshift distribution
+        stepTemplate:
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsUser: 1000
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
         steps:
           - name: test
-            image: harbor.h2o-2-22896.h2o.vmware.com/library/gradle
+            image: gradle
             script: |-
               cd `mktemp -d`
               wget -qO- $(params.source-url) | tar xvz -m
-              ./mvnw test
+              pwd
+              MVNW=mvnw
+              GRADLE="build.gradle"
+              if [ -f "$MVNW" ]; then
+                  ./mvnw test
+              elif [ -f "$GRADLE" ]; then
+                  gradle test --debug
+              else
+                  echo "WARNING: No tests were run. This workload is not built with one of the currently supported frameworks (maven or gradle). If using another language/framework, update the image and the script sections of the 'pipeline.tekton.dev' resource in your namespace to match your language/framework."
+                  #exit 1
+              fi
