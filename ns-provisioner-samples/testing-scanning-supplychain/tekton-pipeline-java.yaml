@@ -41,7 +41,7 @@ spec:
               type: RuntimeDefault
         steps:
           - name: test
-            image: gradle
+            image: harbor.h2o-2-22896.h2o.vmware.com/library/gradle
             script: |-
               cd `mktemp -d`
               wget -qO- $(params.source-url) | tar xvz -m
